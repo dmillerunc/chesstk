@@ -7,6 +7,7 @@ from typing import NewType
 from PIL import (ImageTk, Image)
 import re
 import pandas as pd
+import numpy as np
 
 #from bitboard import piece
 files = ["a","b","c","d","e","f","g","h"]
@@ -34,6 +35,18 @@ pos = Pos((43,43))
 gridBoundaries = [43,129,215,301,387,473,559,645]
 maxBoundary = 688
 midPoint = int(maxBoundary/2)
+class chessFrame:
+    def __init__(self):
+        self.frame = pd.DataFrame(columns=files,index=[0,1,2,3,4,5,6,7])
+        self.frame.fillna(0,inplace=True)
+    def __str__(self):
+        return str(self.frame)
+    def add(self,_rank,_file,_input):
+        self.frame.loc[_rank,_file] = _input
+    def remove(self,_rank,_file):
+        self.frame.loc[_rank,_file] = 0
+    def to_csv(self,_title:FileLocation):
+        self.frame.to_csv(_title)
 
 class ChessBoard:
     """
@@ -75,7 +88,7 @@ class ChessBoard:
             print("Fen has wrong number of ranks.")
     def fenReader(self,fen:str):
         """Takes fen as a string and returns a dictionary of pieces and locations"""
-        self.bFrame = pd.DataFrame(columns = files,index=[0,1,2,3,4,5,6,7])
+        self.bFrame = chessFrame()
         print(self.bFrame)
         fenList = re.split("/",fen)
         #print(fenList)
@@ -87,7 +100,7 @@ class ChessBoard:
                 for f, char in enumerate(rank):
                     if re.match('[a-zA-Z]',char):
                         #print(r,files[f])
-                        self.bFrame.loc[r,files[f]] = char        
+                        self.bFrame.add(r, files[f], char)   
     def getPieces(self, _fen:Fen):
         """
         Take _fen and create Piece List
@@ -99,24 +112,24 @@ class ChessBoard:
             for f in range(8):
                 #print(self.bFrame[files[f]][r])
                 try:
-                    if self.bFrame[files[f]][r].upper() == "K":
-                        self.bFrame.loc[r,files[f]] = King(pieceCropDict[self.bFrame[files[f]][r]],
-                                                       self.pieceImg, (f,r), self.bFrame[files[f]][r])
-                    elif self.bFrame[files[f]][r].upper() == "Q":
-                        self.bFrame.loc[r,files[f]] = Queen(pieceCropDict[self.bFrame[files[f]][r]],
-                                                        self.pieceImg, (f,r), self.bFrame[files[f]][r])
-                    elif self.bFrame[files[f]][r].upper() == "N":
-                        self.bFrame.loc[r,files[f]] = Knight(pieceCropDict[self.bFrame[files[f]][r]],
-                                                         self.pieceImg, (f,r), self.bFrame[files[f]][r])
-                    elif self.bFrame[files[f]][r].upper() == "B":
-                        self.bFrame.loc[r,files[f]] = Bishop(pieceCropDict[self.bFrame[files[f]][r]],
-                                                         self.pieceImg, (f,r), self.bFrame[files[f]][r])
-                    elif self.bFrame[files[f]][r].upper() == "R":
-                        self.bFrame.loc[r,files[f]] = Rook(pieceCropDict[self.bFrame[files[f]][r]],
-                                                       self.pieceImg, (f,r), self.bFrame[files[f]][r])
-                    elif self.bFrame[files[f]][r].upper() == "P":
-                        self.bFrame.loc[r,files[f]] = Pawn(pieceCropDict[self.bFrame[files[f]][r]],
-                                                       self.pieceImg, (f,r), self.bFrame[files[f]][r])
+                    if self.bFrame.frame[files[f]][r].upper() == "K":
+                        self.bFrame.add(r,files[f], King(pieceCropDict[self.bFrame.frame[files[f]][r]],
+                                                       self.pieceImg, (f,r), self.bFrame.frame[files[f]][r]))
+                    elif self.bFrame.frame[files[f]][r].upper() == "Q":
+                        self.bFrame.add(r,files[f], Queen(pieceCropDict[self.bFrame.frame[files[f]][r]],
+                                                        self.pieceImg, (f,r), self.bFrame.frame[files[f]][r]))
+                    elif self.bFrame.frame[files[f]][r].upper() == "N":
+                        self.bFrame.add(r,files[f], Knight(pieceCropDict[self.bFrame.frame[files[f]][r]],
+                                                         self.pieceImg, (f,r), self.bFrame.frame[files[f]][r]))
+                    elif self.bFrame.frame[files[f]][r].upper() == "B":
+                        self.bFrame.add(r,files[f], Bishop(pieceCropDict[self.bFrame.frame[files[f]][r]],
+                                                         self.pieceImg, (f,r), self.bFrame.frame[files[f]][r]))
+                    elif self.bFrame.frame[files[f]][r].upper() == "R":
+                        self.bFrame.add(r,files[f], Rook(pieceCropDict[self.bFrame.frame[files[f]][r]],
+                                                       self.pieceImg, (f,r), self.bFrame.frame[files[f]][r]))
+                    elif self.bFrame.frame[files[f]][r].upper() == "P":
+                        self.bFrame.add(r,files[f], Pawn(pieceCropDict[self.bFrame.frame[files[f]][r]],
+                                                       self.pieceImg, (f,r), self.bFrame.frame[files[f]][r]))
                 except:
                     pass
         print(self.bFrame)
@@ -152,7 +165,7 @@ class ChessBoard:
         _ypos: y position as integer
         """
         if self.selected == True:
-            tmpObj = self.bFrame[files[_mPos[0]]][_mPos[1]]
+            tmpObj = self.bFrame.frame[files[_mPos[0]]][_mPos[1]]
             print(self.selectedPiece.imgLoc)
             if self.selectedPiece.checkBlock(self.selectedPiece.imgLoc,_mPos,self):
                 print("Move blocked by other piece")
@@ -161,10 +174,10 @@ class ChessBoard:
                     print("You cannot take your own piece, illegal move.")
                 elif tmpObj.color != self.turn:
                     if self.selectedPiece.checkCapture(_mPos):
-                        self.bFrame.loc[_mPos[1],files[_mPos[0]]] = self.selectedPiece
-                        self.bFrame.loc[self.selectedPiece.imgLoc[1],files[self.selectedPiece.imgLoc[0]]]= ''
+                        self.bFrame.add(_mPos[1],files[_mPos[0]], self.selectedPiece)
+                        self.bFrame.remove(self.selectedPiece.imgLoc[1],files[self.selectedPiece.imgLoc[0]])
                         self.selectedPiece.move(_mPos)
-                        self.bFrame.to_csv('bframe.csv')
+                        #self.bFrame.to_csv(FileLocation('bframe.csv'))
             else:
                 if self.selectedPiece.checklegal(_mPos):
                     rank = _mPos[1]
@@ -173,9 +186,9 @@ class ChessBoard:
                     oFile = files[self.selectedPiece.imgLoc[0]]
                     
                     tmp = self.selectedPiece
-                    self.bFrame.loc[rank,file] = tmp
-                    self.bFrame.loc[oRank, oFile] = ''
-                    self.bFrame.to_csv('bframe.csv')
+                    self.bFrame.add(rank,file,tmp)
+                    self.bFrame.remove(oRank, oFile)
+                    #self.bFrame.to_csv(FileLocation('bframe.csv'))
                     self.selectedPiece.move(_mPos)
                     self.selected = False
                     if not self.pHlight.status:
@@ -184,7 +197,7 @@ class ChessBoard:
                         self.hLight.move(_mPos)
         elif self.selected == False:
             print("Checking Legality of Selection...")
-            tmpObj = self.bFrame[files[_mPos[0]]][_mPos[1]]
+            tmpObj = self.bFrame.frame[files[_mPos[0]]][_mPos[1]]
             if isinstance(tmpObj,Piece):
                 if self.turn == tmpObj.color:
                     print("Piece Selected")
@@ -203,7 +216,6 @@ class ChessBoard:
                     
                 elif self.turn != tmpObj.color:
                     print("Wrong Color, Please Select Again")
-
     def changeTurn(self):
         """
         Change Turn
@@ -225,9 +237,6 @@ class ChessBoard:
         ycenter = (trunc(_event.y/86)*86)+43
         mouse_pos = Pos((x,y))
         self.checkPieces(mouse_pos)
-class chessFrame:
-    def __init__(self):
-        print("df")
 
 class PGNLog:
     def __init__(self):
@@ -278,7 +287,7 @@ class Piece:
         self.draw()
         self.tmpMove = ""
     def __str__(self):
-        return self.type
+        return str((self.type,self.color))
     def deleteImg(self):
         Board.canvas.delete(self.img)
     def draw(self):
@@ -334,8 +343,8 @@ class Piece:
                 _sPos =  Pos((_sPos[0] + _pDir[0], _sPos[1]+ _pDir[1]))
                 if _sPos == _dPos:
                     break
-                if isinstance(_Board.bFrame[files[_sPos[0]]][_sPos[1]],Piece):
-                    print(_Board.bFrame[files[_sPos[0]]][_sPos[1]].imgLoc , "Piece Blocking intended move")
+                if isinstance(_Board.bFrame.frame[files[_sPos[0]]][_sPos[1]],Piece):
+                    print(_Board.bFrame.frame[files[_sPos[0]]][_sPos[1]].imgLoc , "Piece Blocking intended move")
                     return True
                 
 
@@ -343,9 +352,9 @@ class Piece:
     def getMovestr(self,_rank, _file):
         if self.color == "White":
             if self.type.upper() == 'P':
-                tmpSTR = str(Board.moveNo) + '. ' + str(_file) + str(_rank)
+                tmpSTR = str(Board.moveNo) + '. ' + str(_file) + str(_rank) + ' '
             else:
-                tmpSTR = str(Board.moveNo) + '. ' + self.type.upper() +str(_file) + str(_rank)
+                tmpSTR = str(Board.moveNo) + '. ' + self.type.upper() +str(_file) + str(_rank) + ' '
             return tmpSTR
         elif self.color == 'Black':
             if self.type.upper() == 'P':
