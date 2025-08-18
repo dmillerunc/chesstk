@@ -16,7 +16,6 @@ ranks = [8, 7, 6, 5, 4, 3, 2, 1]
 
 #Create variables
 FileLocation = NewType("FileLocation", str)
-Fen = NewType("Fen", str)
 Pos = NewType("Pos", tuple)
 AppTitle = "Chess Program"
 cPath = "C:/Users/onlygoodderek/OneDrive/Pictures/chess program images/"
@@ -27,7 +26,7 @@ yellowTileLoc = FileLocation(cPath+"YellowTile.png")
 pieceCropDict = {"Q":[0,60,60,120],"K":[60,60,120,120], "R":[120,60,180,120], "N":[180,60,240,120],
     "B":[240,60,300,120], "P":[300,60,360,120], "q":[0,0,60,60],"k":[60,0,120,60],
     "r":[120,0,180,60], "n":[180,0,240,60], "b":[240,0,300,60], "p":[300,0,360,60]}
-startPos = Fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR")
+startPos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
 box = (0,0,60,60)
 pos = Pos((43,43))
 
@@ -48,6 +47,42 @@ class chessFrame:
     def to_csv(self,_title:FileLocation):
         self.frame.to_csv(_title)
 
+class Fen:
+    def __init__(self, _fen: str):
+        self.fen = _fen
+        self.createFrame()
+        self.readFen()
+
+    def __str__(self):
+        return self.fen
+    def createFrame(self):
+        self.frame = chessFrame()
+    def readFen(self):
+        self.fenList = re.split("/", self.fen)
+        if len(self.fenList) == 8:
+            print("Successful Fen Upload")
+        else:
+            print("Fen has wrong number of ranks")
+        r=0
+
+        while r < len(self.fenList):
+            f=0
+            i=0
+            while i < 8:
+                if self.fenList[r][f].isdigit():
+                    i+= int(self.fenList[r][f])-1
+                    print(r,f)
+                elif not self.fenList[r][f].isdigit():
+                    print(self.fenList[r][f])
+                    if re.match('[a-zA-Z]', self.fenList[r][f]):
+                        self.frame.add(r,files[i], self.fenList[r][f])
+                f+=1
+                i+=1
+            r+=1
+    def createFen(self):
+        pass
+
+            
 class ChessBoard:
     """
     Create Canvas and Board for Chess
@@ -80,37 +115,17 @@ class ChessBoard:
         """
         Draw ChessBoard
         """
-        self.img = self.canvas.create_image(self.size/2,self.size/2, image = self.tkImg)
-    def checkFenLen(self,fenList):
-        if len(fenList) == 8:
-            print("Successful Fen Upload")
-        else:
-            print("Fen has wrong number of ranks.")
-    def fenReader(self,fen:str):
-        """Takes fen as a string and returns a dictionary of pieces and locations"""
-        self.bFrame = chessFrame()
-        print(self.bFrame)
-        fenList = re.split("/",fen)
-        #print(fenList)
-
-        self.checkFenLen(fenList)
-        for r, rank in enumerate(fenList):
-            #print(r,rank)
-            if not rank.isdigit():
-                for f, char in enumerate(rank):
-                    if re.match('[a-zA-Z]',char):
-                        #print(r,files[f])
-                        self.bFrame.add(r, files[f], char)   
+        self.img = self.canvas.create_image(self.size/2,self.size/2, image = self.tkImg)   
     def getPieces(self, _fen:Fen):
         """
         Take _fen and create Piece List
         _fen: Fen 
         """
-        self.fenReader(_fen)
-        #print(piecesDict)
+        self.fen = Fen(_fen)
+        self.bFrame = self.fen.frame
         for r in range(8):
             for f in range(8):
-                #print(self.bFrame[files[f]][r])
+                """Place piece into frame at correct location"""
                 try:
                     if self.bFrame.frame[files[f]][r].upper() == "K":
                         self.bFrame.add(r,files[f], King(pieceCropDict[self.bFrame.frame[files[f]][r]],
@@ -238,28 +253,28 @@ class ChessBoard:
         mouse_pos = Pos((x,y))
         self.checkPieces(mouse_pos)
 
-class PGNLog:
-    def __init__(self):
-        self.date = str(date.today())
-        self.time = ' ' + str(time.localtime().tm_hour) + '-' + str(time.localtime().tm_min)
-        self.fileName = self.date +self.time + ".pgn"
-        with open(self.fileName, 'a') as pgnFile:
-            pgnFile.write("[Event \"?\"]\n")
-            pgnFile.write("[Site \"?\"]\n")
-            pgnFile.write("[Date \"" + self.date + "\"]\n")
-            pgnFile.write("[Round \"?\"]\n")
-            pgnFile.write("[White \"?\"]\n")
-            pgnFile.write("[Black \"?\"]\n")
-            pgnFile.write("[Result \"?\"]\n")
-            #pgnFile.write("[ECO \"*\"]\n\n")
-            pgnFile.close()
-        print("Create Log", self.fileName)
-    def writeMove(self, _str: str):
-        """
-        Write move to PGN file
-        """
-        with open(self.fileName, 'a') as pgnFile:
-            pgnFile.write(_str + ' ')
+# class PGNLog:
+#     def __init__(self):
+#         self.date = str(date.today())
+#         self.time = ' ' + str(time.localtime().tm_hour) + '-' + str(time.localtime().tm_min)
+#         self.fileName = self.date +self.time + ".pgn"
+#         with open(self.fileName, 'a') as pgnFile:
+#             pgnFile.write("[Event \"?\"]\n")
+#             pgnFile.write("[Site \"?\"]\n")
+#             pgnFile.write("[Date \"" + self.date + "\"]\n")
+#             pgnFile.write("[Round \"?\"]\n")
+#             pgnFile.write("[White \"?\"]\n")
+#             pgnFile.write("[Black \"?\"]\n")
+#             pgnFile.write("[Result \"?\"]\n")
+#             #pgnFile.write("[ECO \"*\"]\n\n")
+#             pgnFile.close()
+#         print("Create Log", self.fileName)
+#     def writeMove(self, _str: str):
+#         """
+#         Write move to PGN file
+#         """
+#         with open(self.fileName, 'a') as pgnFile:
+#             pgnFile.write(_str + ' ') 
             
 class Piece:
     """
@@ -312,7 +327,7 @@ class Piece:
             Board.turn = "White"
             tmpSTR = self.getMovestr(ranks[_newPos[0]], files[_newPos[1]])
             Board.tmpMove = Board.tmpMove + tmpSTR
-            logVar.writeMove(Board.tmpMove)
+            #logVar.writeMove(Board.tmpMove)
             Board.moveNo = Board.moveNo + 1
             print(Board.tmpMove)
         self.deselect
@@ -555,7 +570,7 @@ class SquareHighlight:
         self.status = False
 
 
-logVar = PGNLog()          
+#logVar = PGNLog()          
 
 """
 Create Window, Canvas and ChessBoard
