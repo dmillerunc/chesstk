@@ -177,7 +177,7 @@ class ChessBoard:
                         self.bFrame.add(_mPos[1],files[_mPos[0]], self.selectedPiece)
                         self.bFrame.remove(self.selectedPiece.imgLoc[1],files[self.selectedPiece.imgLoc[0]])
                         self.selectedPiece.move(_mPos)
-                        self.bFrame.to_csv(FileLocation('bframe.csv'))
+                        #self.bFrame.to_csv(FileLocation('bframe.csv'))
             else:
                 if self.selectedPiece.checklegal(_mPos):
                     rank = _mPos[1]
@@ -188,7 +188,7 @@ class ChessBoard:
                     tmp = self.selectedPiece
                     self.bFrame.add(rank,file,tmp)
                     self.bFrame.remove(oRank, oFile)
-                    self.bFrame.to_csv(FileLocation('bframe.csv'))
+                    #self.bFrame.to_csv(FileLocation('bframe.csv'))
                     self.selectedPiece.move(_mPos)
                     self.selected = False
                     if not self.pHlight.status:
@@ -352,9 +352,9 @@ class Piece:
     def getMovestr(self,_rank, _file):
         if self.color == "White":
             if self.type.upper() == 'P':
-                tmpSTR = str(Board.moveNo) + '. ' + str(_file) + str(_rank)
+                tmpSTR = str(Board.moveNo) + '. ' + str(_file) + str(_rank) + ' '
             else:
-                tmpSTR = str(Board.moveNo) + '. ' + self.type.upper() +str(_file) + str(_rank)
+                tmpSTR = str(Board.moveNo) + '. ' + self.type.upper() +str(_file) + str(_rank) + ' '
             return tmpSTR
         elif self.color == 'Black':
             if self.type.upper() == 'P':
