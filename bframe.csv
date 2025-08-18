@@ -1,0 +1,9 @@
+,a,b,c,d,e,f,g,h
+0,"('r', 'Black')","('n', 'Black')","('b', 'Black')","('q', 'Black')","('k', 'Black')",0,"('n', 'Black')","('r', 'Black')"
+1,"('p', 'Black')","('p', 'Black')","('p', 'Black')",0,0,"('p', 'Black')","('p', 'Black')","('p', 'Black')"
+2,0,0,0,0,0,0,0,0
+3,0,0,"('b', 'Black')","('P', 'White')","('p', 'Black')",0,0,0
+4,0,0,"('B', 'White')",0,0,0,0,0
+5,0,0,0,0,0,"('N', 'White')",0,0
+6,"('P', 'White')","('P', 'White')","('P', 'White')","('P', 'White')",0,"('P', 'White')","('P', 'White')","('P', 'White')"
+7,"('R', 'White')","('N', 'White')","('B', 'White')","('Q', 'White')","('K', 'White')",0,0,"('R', 'White')"
