@@ -316,7 +316,9 @@ class Piece:
         print(self.imgLoc)
         print(self.tkImg)
     def __str__(self):
-        return str((self.type,self.color))
+        return self.type
+    def __repr__(self):
+        return self.type
     def deleteImg(self):
         Board.canvas.delete(self.img)
     def draw(self):
