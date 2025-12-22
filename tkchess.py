@@ -34,10 +34,6 @@ wPawn = 'pieces-basic-png/white-pawn.png'
 wQueen = 'pieces-basic-png/white-queen.png'
 wRook = 'pieces-basic-png/white-rook.png'
 yellowTileLoc = FileLocation(cPath+"YellowTile.png")
-#print(type(boardLoc))
-pieceCropDict = {"Q":[0,60,60,120],"K":[60,60,120,120], "R":[120,60,180,120], "N":[180,60,240,120],
-    "B":[240,60,300,120], "P":[300,60,360,120], "q":[0,0,60,60],"k":[60,0,120,60],
-    "r":[120,0,180,60], "n":[180,0,240,60], "b":[240,0,300,60], "p":[300,0,360,60]}
 startPos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
 box = (0,0,60,60)
 pos = Pos((43,43))
