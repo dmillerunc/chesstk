@@ -33,8 +33,6 @@ wKing = 'pieces-basic-png/white-king.png'
 wPawn = 'pieces-basic-png/white-pawn.png'
 wQueen = 'pieces-basic-png/white-queen.png'
 wRook = 'pieces-basic-png/white-rook.png'
-boardLoc = FileLocation(cPath+"chessboard.png")
-piecesFile = FileLocation(cPath+"ChessPiecesArray.png")
 yellowTileLoc = FileLocation(cPath+"YellowTile.png")
 #print(type(boardLoc))
 pieceCropDict = {"Q":[0,60,60,120],"K":[60,60,120,120], "R":[120,60,180,120], "N":[180,60,240,120],
