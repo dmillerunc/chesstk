@@ -12,13 +12,27 @@ import numpy as np
 #from bitboard import piece
 files = ["a","b","c","d","e","f","g","h"]
 ranks = [8, 7, 6, 5, 4, 3, 2, 1]
-
-
+sqSize = 70
+gridBoundaries = [i*sqSize for i in range(9)]
+gridCenters= [i-sqSize/2 for i in gridBoundaries]
+maxBoundary = sqSize * 8
 #Create variables
 FileLocation = NewType("FileLocation", str)
 Pos = NewType("Pos", tuple)
 AppTitle = "Chess Program"
 cPath = "C:/Users/onlygoodderek/OneDrive/Pictures/chess program images/"
+bBishop = 'pieces-basic-png/black-bishop.png'
+bKnight = 'pieces-basic-png/black-knight.png'
+bKing = 'pieces-basic-png/black-king.png'
+bPawn = 'pieces-basic-png/black-pawn.png'
+bQueen = 'pieces-basic-png/black-queen.png'
+bRook = 'pieces-basic-png/black-rook.png'
+wBishop = 'pieces-basic-png/white-bishop.png'
+wKnight =  'pieces-basic-png/white-knight.png'
+wKing = 'pieces-basic-png/white-king.png'
+wPawn = 'pieces-basic-png/white-pawn.png'
+wQueen = 'pieces-basic-png/white-queen.png'
+wRook = 'pieces-basic-png/white-rook.png'
 boardLoc = FileLocation(cPath+"chessboard.png")
 piecesFile = FileLocation(cPath+"ChessPiecesArray.png")
 yellowTileLoc = FileLocation(cPath+"YellowTile.png")
@@ -31,19 +45,18 @@ box = (0,0,60,60)
 pos = Pos((43,43))
 
 
-gridBoundaries = [43,129,215,301,387,473,559,645]
-maxBoundary = 688
+
 midPoint = int(maxBoundary/2)
 class chessFrame:
     def __init__(self):
-        self.frame = pd.DataFrame(columns=files,index=[0,1,2,3,4,5,6,7])
-        self.frame.fillna(0,inplace=True)
+        self.frame = pd.DataFrame(columns=files,index=[0,1,2,3,4,5,6,7],dtype=object)
+        self.frame.fillna(method='bfill')
     def __str__(self):
         return str(self.frame)
     def add(self,_rank,_file,_input):
-        self.frame.loc[_rank,_file] = _input
+        self.frame.loc[[_rank],[_file]] = _input
     def remove(self,_rank,_file):
-        self.frame.loc[_rank,_file] = 0
+        self.frame.at[_rank,_file] = 0
     def to_csv(self,_title:FileLocation):
         self.frame.to_csv(_title)
 
@@ -96,13 +109,11 @@ class ChessBoard:
         self.moveNo = 1
         self.turn = "White"
         self.selected = False
-        img = Image.open(boardLoc)
-        self.pieceImg = Image.open(piecesFile)
-        self.tkImg = ImageTk.PhotoImage(img)
-        self.hLight = SquareHighlight()
-        self.pHlight = SquareHighlight()
+        self.gridBoundaries = gridBoundaries
+        #self.hLight = SquareHighlight()
+        #self.pHlight = SquareHighlight()
         self.app = _app
-        self.size = 688 
+        self.size = maxBoundary
         self.captPcList = []
         self.selectedPiece = object
     def createCanvas(self):
@@ -115,7 +126,21 @@ class ChessBoard:
         """
         Draw ChessBoard
         """
-        self.img = self.canvas.create_image(self.size/2,self.size/2, image = self.tkImg)   
+        for x in range(8):
+            for y in range(8):
+                if (x%2)==(y%2):
+                    self.canvas.create_rectangle(self.gridBoundaries[x],
+                                                 self.gridBoundaries[y],
+                                                 self.gridBoundaries[x+1],
+                                                 self.gridBoundaries[y+1],
+                                                 fill="White")
+                else:
+                    self.canvas.create_rectangle(self.gridBoundaries[x],
+                                                 self.gridBoundaries[y],
+                                                 self.gridBoundaries[x+1],
+                                                 self.gridBoundaries[y+1],
+                                                 fill="Green")
+        self.canvas.pack(fill='both',expand=True)
     def getPieces(self, _fen:Fen):
         """
         Take _fen and create Piece List
@@ -126,27 +151,24 @@ class ChessBoard:
         for r in range(8):
             for f in range(8):
                 """Place piece into frame at correct location"""
+                print(self.bFrame.frame[files[f]][r])
                 try:
+                    if not isinstance(self.bFrame.frame[files[f]][r],str):
+                        break
                     if self.bFrame.frame[files[f]][r].upper() == "K":
-                        self.bFrame.add(r,files[f], King(pieceCropDict[self.bFrame.frame[files[f]][r]],
-                                                       self.pieceImg, (f,r), self.bFrame.frame[files[f]][r]))
+                        self.bFrame.add(r, files[f], King(Pos((f,r)),self.bFrame.frame[files[f]][r]))
                     elif self.bFrame.frame[files[f]][r].upper() == "Q":
-                        self.bFrame.add(r,files[f], Queen(pieceCropDict[self.bFrame.frame[files[f]][r]],
-                                                        self.pieceImg, (f,r), self.bFrame.frame[files[f]][r]))
+                        self.bFrame.add(r, files[f], Queen((f, r), self.bFrame.frame[files[f]][r]))
                     elif self.bFrame.frame[files[f]][r].upper() == "N":
-                        self.bFrame.add(r,files[f], Knight(pieceCropDict[self.bFrame.frame[files[f]][r]],
-                                                         self.pieceImg, (f,r), self.bFrame.frame[files[f]][r]))
+                        self.bFrame.add(r, files[f], Knight((f, r), self.bFrame.frame[files[f]][r]))
                     elif self.bFrame.frame[files[f]][r].upper() == "B":
-                        self.bFrame.add(r,files[f], Bishop(pieceCropDict[self.bFrame.frame[files[f]][r]],
-                                                         self.pieceImg, (f,r), self.bFrame.frame[files[f]][r]))
+                        self.bFrame.add(r, files[f], Bishop((f, r), self.bFrame.frame[files[f]][r]))
                     elif self.bFrame.frame[files[f]][r].upper() == "R":
-                        self.bFrame.add(r,files[f], Rook(pieceCropDict[self.bFrame.frame[files[f]][r]],
-                                                       self.pieceImg, (f,r), self.bFrame.frame[files[f]][r]))
+                        self.bFrame.add(r, files[f], Rook((f, r), self.bFrame.frame[files[f]][r]))
                     elif self.bFrame.frame[files[f]][r].upper() == "P":
-                        self.bFrame.add(r,files[f], Pawn(pieceCropDict[self.bFrame.frame[files[f]][r]],
-                                                       self.pieceImg, (f,r), self.bFrame.frame[files[f]][r]))
+                        self.bFrame.add(r, files[f], Pawn((f, r), self.bFrame.frame[files[f]][r]))
                 except:
-                    pass
+                    raise RuntimeError('Could Not Create Piece')
         print(self.bFrame)
         #print(self.pcList)
     def selectPiece(self, _piece: object):
@@ -245,11 +267,11 @@ class ChessBoard:
         gives location of center of square as determined by mouseclick
         _event: mouseclick event
         """
-        x = trunc(_event.x/86)
-        y = trunc(_event.y/86)
+        x = trunc(_event.x/sqSize)
+        y = trunc(_event.y/sqSize)
         print(x,y)
-        xcenter = (trunc(_event.x/86)*86)+43
-        ycenter = (trunc(_event.y/86)*86)+43
+        xcenter = (trunc(_event.x/sqSize)*sqSize)+43
+        ycenter = (trunc(_event.y/sqSize)*sqSize)+43
         mouse_pos = Pos((x,y))
         self.checkPieces(mouse_pos)
 
@@ -284,7 +306,7 @@ class Piece:
     _imgLoc: Set of coordinates as tuple
     _type: Piece type and color as character
     """
-    def __init__(self, _box: list[int], _img: object, _imgLoc: Pos, _type):
+    def __init__(self, _imgLoc: Pos, _type):
         #print(_box,_img,_imgLoc,_type)
         self.hasMoved = False
         self.selected = False
@@ -293,20 +315,20 @@ class Piece:
         elif _type.isupper():
             self.color = "White"
         self.type = _type
-        self.box = _box
-        cropImg = _img.crop(_box)
-        cropImg = cropImg.resize((84,84),resample=3)
-        self.tkImg = ImageTk.PhotoImage(cropImg)
         self.imgLoc = (_imgLoc[0],_imgLoc[1])
         print(self.imgLoc)
-        self.draw()
         self.tmpMove = ""
+        self.getImg()
+        print(self.imgLoc)
+        print(self.tkImg)
     def __str__(self):
         return str((self.type,self.color))
     def deleteImg(self):
         Board.canvas.delete(self.img)
     def draw(self):
-        self.img = Board.canvas.create_image((self.imgLoc[0]*86+43,self.imgLoc[1]*86+43),image = self.tkImg)
+        self.img = Board.canvas.create_image((self.imgLoc[0]*sqSize+sqSize/2,self.imgLoc[1]*sqSize+sqSize/2),image = self.tkImg)
+        Board.canvas.pack()
+        Board.canvas.update()
     def move(self,_newPos:Pos):
         print("Derek",_newPos)
         xmov = _newPos[0] - self.imgLoc[0]
@@ -316,7 +338,7 @@ class Piece:
         #fileIndex = gridBoundaries.index(_newPos[1])
         print("Legal Move")
 
-        Board.canvas.move(self.img, xmov*86, ymov*86)
+        Board.canvas.move(self.img, xmov*sqSize, ymov*sqSize)
         Board.canvas.update()
         if Board.turn == "White":
             Board.turn = "Black"
@@ -386,9 +408,9 @@ class King(Piece):
     Class for giving King rules for moving and attacking
     """
 
-    def __init__(self, _box, _img, _imgLoc:Pos, _type):
-        super().__init__(_box, _img, _imgLoc, _type) 
-    
+    def __init__(self, _imgLoc:Pos, _type):
+        super().__init__(_imgLoc, _type)
+
     def checklegal(self, _newPos: Pos):
         self.checkBlock(self.imgLoc,_newPos)
         xmov = abs(int(_newPos[0] - self.imgLoc[0]))
@@ -417,13 +439,23 @@ class King(Piece):
             return True
         else:
             return False
-
+    def getImg(self):
+        if self.color == 'White':
+            self.img = Image.open(wKing).convert("RGBA")
+        elif self.color == 'Black':
+            self.img = Image.open(bKing).convert("RGBA")
+        self.img = self.img.resize((sqSize, sqSize))
+        self.tkImg = ImageTk.PhotoImage(self.img)
+        self.draw()
+        Board.canvas.update()
 class Queen(Piece):
     """
     Class for giving Queen rules for moving and attacking
     """
-    def __init__(self, _box, _img, _imgLoc:Pos, _type):
-        super().__init__(_box, _img, _imgLoc, _type)
+    def __init__(self, _imgLoc:Pos, _type):
+        super().__init__(_imgLoc, _type)
+
+
     def checklegal(self, _newPos: Pos):
         xmov = abs(int(_newPos[0] - self.imgLoc[0]))
         ymov = abs(int(_newPos[1] - self.imgLoc[1]))
@@ -437,8 +469,8 @@ class Queen(Piece):
             return False
 
     def checkCapture(self, _newPos: Pos):
-        xmov = abs(int(_newPos[0]/86 - self.imgLoc[0]/86))
-        ymov = abs(int(_newPos[1]/86 - self.imgLoc[1]/86))
+        xmov = abs(int(_newPos[0]/sqSize - self.imgLoc[0]/sqSize))
+        ymov = abs(int(_newPos[1]/sqSize - self.imgLoc[1]/sqSize))
         if xmov == ymov: #Diaganal Movement
             return True
         elif xmov == 0 and ymov > 0: #Vertical Movement
@@ -448,12 +480,21 @@ class Queen(Piece):
         else:
             return False
         #print(xmov, ymov)
+    def getImg(self):
+        if self.color == 'White':
+            self.img = Image.open(wQueen).convert("RGBA")
+        elif self.color == 'Black':
+            self.img = Image.open(bQueen).convert("RGBA")
+        self.img = self.img.resize((sqSize, sqSize))
+        self.tkImg = ImageTk.PhotoImage(self.img)
+        self.draw()
 class Knight(Piece):
     """
     Class for giving Knight rules for moving and attacking
     """
-    def __init__(self, _box, _img, _imgLoc:Pos, _type):
-        super().__init__(_box, _img, _imgLoc, _type)
+    def __init__(self, _imgLoc:Pos, _type):
+        super().__init__(_imgLoc, _type)
+
     def checklegal(self, _newPos: Pos):
         xmov = abs(int(_newPos[0] - self.imgLoc[0]))
         ymov = abs(int(_newPos[1] - self.imgLoc[1]))
@@ -464,8 +505,8 @@ class Knight(Piece):
         else:
             return False
     def checkCapture(self, _newPos: Pos):
-        xmov = abs(int(_newPos[0]/86 - self.imgLoc[0]/86))
-        ymov = abs(int(_newPos[1]/86 - self.imgLoc[1]/86))
+        xmov = abs(int(_newPos[0]/sqSize - self.imgLoc[0]/sqSize))
+        ymov = abs(int(_newPos[1]/sqSize - self.imgLoc[1]/sqSize))
         if xmov == 2 and ymov == 1: #Horizontal L
             return True
         elif xmov == 1 and ymov == 2: #Vertical L
@@ -476,9 +517,18 @@ class Knight(Piece):
         #print(xmov, ymov)
     def checkBlock(self,_sPos,_dPos,_Board):
         return False
+    def getImg(self):
+        if self.color == 'White':
+            self.img = Image.open(wKnight).convert("RGBA")
+        elif self.color == 'Black':
+            self.img = Image.open(bKnight).convert("RGBA")
+        self.img = self.img.resize((sqSize, sqSize))
+        self.tkImg = ImageTk.PhotoImage(self.img)
+        self.draw()
 class Bishop(Piece):
-    def __init__(self, _box, _img, _imgLoc:Pos, _type):
-        super().__init__(_box, _img, _imgLoc, _type)
+    def __init__(self, _imgLoc:Pos, _type):
+        super().__init__(_imgLoc, _type)
+
     def checklegal(self, _newPos: Pos):
         xmov = abs(int(_newPos[0] - self.imgLoc[0]))
         ymov = abs(int(_newPos[1] - self.imgLoc[1]))
@@ -488,15 +538,24 @@ class Bishop(Piece):
             return False
         #print(xmov, ymov)
     def checkCapture(self, _newPos: Pos):
-        xmov = abs(int(_newPos[0]/86 - self.imgLoc[0]/86))
-        ymov = abs(int(_newPos[1]/86 - self.imgLoc[1]/86))
+        xmov = abs(int(_newPos[0]/sqSize - self.imgLoc[0]/sqSize))
+        ymov = abs(int(_newPos[1]/sqSize - self.imgLoc[1]/sqSize))
         if xmov == ymov: #Diaganal Movement
             return True
         else:
             return False
+    def getImg(self):
+        if self.color == 'White':
+            self.img = Image.open(wBishop).convert("RGBA")
+        elif self.color == 'Black':
+            self.img = Image.open(bBishop).convert("RGBA")
+        self.img = self.img.resize((sqSize, sqSize))
+        self.tkImg = ImageTk.PhotoImage(self.img)
+        self.draw()
 class Rook(Piece):
-    def __init__(self, _box, _img, _imgLoc:Pos, _type):
-        super().__init__(_box, _img, _imgLoc, _type)
+    def __init__(self,_imgLoc:Pos, _type):
+        super().__init__(_imgLoc, _type)
+
     def checklegal(self, _newPos: Pos):
         xmov = abs(int(_newPos[0] - self.imgLoc[0]))
         ymov = abs(int(_newPos[1] - self.imgLoc[1]))
@@ -507,8 +566,8 @@ class Rook(Piece):
         else:
             return False
     def checkCapture(self, _newPos: Pos):
-        xmov = abs(int(_newPos[0]/86 - self.imgLoc[0]/86))
-        ymov = abs(int(_newPos[1]/86 - self.imgLoc[1]/86))
+        xmov = abs(int(_newPos[0]/sqSize - self.imgLoc[0]/sqSize))
+        ymov = abs(int(_newPos[1]/sqSize - self.imgLoc[1]/sqSize))
         if xmov == 0 and ymov > 0: #Vertical Movement
             return True
         elif xmov > 0 and ymov == 0: #Horizontal Movement
@@ -516,9 +575,19 @@ class Rook(Piece):
         else:
             return False
         #print(xmov, ymov)
+    def getImg(self):
+        if self.color == 'White':
+            self.img = Image.open(wRook).convert("RGBA")
+        elif self.color == 'Black':
+            self.img = Image.open(bRook).convert("RGBA")
+        self.img = self.img.resize((sqSize,sqSize))
+        self.tkImg = ImageTk.PhotoImage(self.img)
+        self.draw()
+
 class Pawn(Piece):
-    def __init__(self, _box, _img, _imgLoc:Pos, _type):
-        super().__init__(_box, _img, _imgLoc, _type)
+    def __init__(self, _imgLoc:Pos, _type):
+        super().__init__(_imgLoc, _type)
+
     def checklegal(self, _newPos: Pos):
         if self.color == "White":
             yconstant = -1
@@ -546,6 +615,15 @@ class Pawn(Piece):
         if xmov == 1 and ymov == yconstant * 1:
             print("Capturing")
             return True
+    def getImg(self):
+        if self.color == 'White':
+            self.img = Image.open(wPawn).convert("RGBA")
+        elif self.color == 'Black':
+            self.img = Image.open(bPawn).convert("RGBA")
+        self.img = self.img.resize((sqSize,sqSize))
+        self.tkImg = ImageTk.PhotoImage(self.img)
+        self.draw()
+
 class SquareHighlight:
     """
     Creates a Square Highlight and moves it
@@ -556,11 +634,11 @@ class SquareHighlight:
         self.img = ImageTk.PhotoImage(callimage)
     def draw(self,_mPos:Pos):
         self.imgLoc = _mPos
-        self.highlight = Board.canvas.create_image(_mPos[0]*86+43,_mPos[1]*86+43,image = self.img)
+        self.highlight = Board.canvas.create_image(_mPos[0]*sqSize+43,_mPos[1]*sqSize+43,image = self.img)
         self.status=True
     def move(self,_mPos:Pos):
-        xmov = _mPos[0]*86 - self.imgLoc[0]*86
-        ymov = _mPos[1]*86 - self.imgLoc[1]*86
+        xmov = _mPos[0]*sqSize - self.imgLoc[0]*sqSize
+        ymov = _mPos[1]*sqSize - self.imgLoc[1]*sqSize
         #print(xmov,ymov)
         self.imgLoc = _mPos
         Board.canvas.move(self.highlight, xmov, ymov)
