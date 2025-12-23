@@ -268,28 +268,28 @@ class ChessBoard:
         mouse_pos = Pos((x,y))
         self.checkPieces(mouse_pos)
 
-# class PGNLog:
-#     def __init__(self):
-#         self.date = str(date.today())
-#         self.time = ' ' + str(time.localtime().tm_hour) + '-' + str(time.localtime().tm_min)
-#         self.fileName = self.date +self.time + ".pgn"
-#         with open(self.fileName, 'a') as pgnFile:
-#             pgnFile.write("[Event \"?\"]\n")
-#             pgnFile.write("[Site \"?\"]\n")
-#             pgnFile.write("[Date \"" + self.date + "\"]\n")
-#             pgnFile.write("[Round \"?\"]\n")
-#             pgnFile.write("[White \"?\"]\n")
-#             pgnFile.write("[Black \"?\"]\n")
-#             pgnFile.write("[Result \"?\"]\n")
-#             #pgnFile.write("[ECO \"*\"]\n\n")
-#             pgnFile.close()
-#         print("Create Log", self.fileName)
-#     def writeMove(self, _str: str):
-#         """
-#         Write move to PGN file
-#         """
-#         with open(self.fileName, 'a') as pgnFile:
-#             pgnFile.write(_str + ' ') 
+class PGNLog:
+    def __init__(self):
+        self.date = str(date.today())
+        self.time = ' ' + str(time.localtime().tm_hour) + '-' + str(time.localtime().tm_min)
+        self.fileName = self.date +self.time + ".pgn"
+        with open(self.fileName, 'a') as pgnFile:
+            pgnFile.write("[Event \"?\"]\n")
+            pgnFile.write("[Site \"?\"]\n")
+            pgnFile.write("[Date \"" + self.date + "\"]\n")
+            pgnFile.write("[Round \"?\"]\n")
+            pgnFile.write("[White \"?\"]\n")
+            pgnFile.write("[Black \"?\"]\n")
+            pgnFile.write("[Result \"?\"]\n")
+            pgnFile.write("[ECO \"*\"]\n\n")
+            pgnFile.close()
+        print("Create Log", self.fileName)
+    def writeMove(self, _str: str):
+        """
+        Write move to PGN file
+        """
+        with open(self.fileName, 'a') as pgnFile:
+            pgnFile.write(_str + ' ') 
             
 class Piece:
     """
@@ -344,7 +344,7 @@ class Piece:
             Board.turn = "White"
             tmpSTR = self.getMovestr(ranks[_newPos[0]], files[_newPos[1]])
             Board.tmpMove = Board.tmpMove + tmpSTR
-            #logVar.writeMove(Board.tmpMove)
+            logVar.writeMove(Board.tmpMove)
             Board.moveNo = Board.moveNo + 1
             print(Board.tmpMove)
         self.deselect
@@ -643,8 +643,7 @@ class SquareHighlight:
         Board.canvas.delete(self.highlight)
         self.status = False
 
-
-#logVar = PGNLog()          
+logVar = PGNLog()          
 
 """
 Create Window, Canvas and ChessBoard
@@ -657,11 +656,6 @@ Board.createCanvas()
 Board.createBoard()
 Board.getPieces(startPos)
 
-
 Board.canvas.bind("<1>", Board.on_mouse_click)
-
-
-
-
 
 app_win.mainloop()
