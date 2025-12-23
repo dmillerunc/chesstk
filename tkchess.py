@@ -33,7 +33,6 @@ wKing = 'pieces-basic-png/white-king.png'
 wPawn = 'pieces-basic-png/white-pawn.png'
 wQueen = 'pieces-basic-png/white-queen.png'
 wRook = 'pieces-basic-png/white-rook.png'
-yellowTileLoc = FileLocation(cPath+"YellowTile.png")
 startPos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
 box = (0,0,60,60)
 pos = Pos((43,43))
@@ -104,8 +103,8 @@ class ChessBoard:
         self.turn = "White"
         self.selected = False
         self.gridBoundaries = gridBoundaries
-        #self.hLight = SquareHighlight()
-        #self.pHlight = SquareHighlight()
+        self.hLight = SquareHighlight()
+        self.pHlight = SquareHighlight()
         self.app = _app
         self.size = maxBoundary
         self.captPcList = []
@@ -626,11 +625,12 @@ class SquareHighlight:
     """
     def __init__(self):
         self.status = False
-        callimage = Image.open(yellowTileLoc)
+        alphalevel = int(.4*255)
+        callimage = Image.new('RGBA',(sqSize,sqSize),(255,200,0,alphalevel))
         self.img = ImageTk.PhotoImage(callimage)
     def draw(self,_mPos:Pos):
         self.imgLoc = _mPos
-        self.highlight = Board.canvas.create_image(_mPos[0]*sqSize+43,_mPos[1]*sqSize+43,image = self.img)
+        self.highlight = Board.canvas.create_image(_mPos[0]*sqSize+sqSize/2,_mPos[1]*sqSize+sqSize/2,image = self.img)
         self.status=True
     def move(self,_mPos:Pos):
         xmov = _mPos[0]*sqSize - self.imgLoc[0]*sqSize
