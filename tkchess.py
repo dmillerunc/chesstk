@@ -7,11 +7,12 @@ from typing import NewType
 from PIL import (ImageTk, Image)
 import re
 import pandas as pd
-import numpy as np
+from fenreader import GameManager
 
 #from bitboard import piece
 files = ["a","b","c","d","e","f","g","h"]
 ranks = [8, 7, 6, 5, 4, 3, 2, 1]
+
 
 
 #Create variables
@@ -53,7 +54,7 @@ class Fen:
         self.createFrame()
         self.readFen()
 
-    def __str__(self):
+    def __str__(self)->str:
         return self.fen
     def createFrame(self):
         self.frame = chessFrame()
@@ -86,16 +87,18 @@ class Fen:
 class ChessBoard:
     """
     Create Canvas and Board for Chess
-    _app: tkinterApp
+    _app: tkinter Application
     _mbound: Size of board (Integer)
     """
-    def __init__(self, _app):
+    def __init__(self, _app: tkinter.Tkz):
         """
         _app: tKinter Application
         """
-        self.moveNo = 1
-        self.turn = "White"
-        self.selected = False
+        self.gm = GameManager("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+        self.pieceList = [0] * 64
+        self._moveNo = 1
+        self._turn = "White"
+        self._selected = False
         img = Image.open(boardLoc)
         self.pieceImg = Image.open(piecesFile)
         self.tkImg = ImageTk.PhotoImage(img)
@@ -105,6 +108,34 @@ class ChessBoard:
         self.size = 688 
         self.captPcList = []
         self.selectedPiece = object
+    ##############
+    # Properties #
+    ##############
+    @property
+    def moveNo(self):
+        return self._moveNo
+    @moveNo.setter
+    def moveNo(self, _value: int):
+        if not isinstance(_value, int) or _value < 0:
+            raise ValueError('Move Number must be above zero')
+        self._moveNo = _value
+    @property
+    def selected(self):
+        return self._selected
+    selected.setter
+    def selected(self, _value: bool):
+        self._selected = _value
+    @property
+    def turn(self):
+        return self._turn
+    turn.setter
+    def turn(self, _color: str):
+        if _color not in ['White', 'Black']:
+            raise ValueError('Color must be either "White" or "Black"')
+        self._turn = _color
+    ############
+    # Methoods #
+    ############
     def createCanvas(self):
         """
         Establish Canvas for placing all future images
@@ -121,8 +152,30 @@ class ChessBoard:
         Take _fen and create Piece List
         _fen: Fen 
         """
+        self.gm.gameboards
         self.fen = Fen(_fen)
         self.bFrame = self.fen.frame
+
+        self.pieces = []
+        for i in range(64):
+            print(trunc(i/8), i%8)
+            print(self.gm.gameboards.all.get_square(i))
+            r = trunc(i / 8)
+            f = i % 8
+            tmp_sq = self.gm.gameboards.all.get_square(i)
+            tmp_piece = self.gm.gameboards.get_piece(tmp_sq)
+            if str(tmp_piece).upper() == 'K':
+                self.pieceList[i] = King(pieceCropDict[self.bFrame.frame[files[f]][r]], self.pieceImg, (f,r), self.bFrame.frame[files[f]][r])
+            elif str(tmp_piece).upper() == "Q":
+                self.pieceList[i] =  Queen(pieceCropDict[self.bFrame.frame[files[f]][r]], self.pieceImg, (f,r), self.bFrame.frame[files[f]][r])
+            elif str(tmp_piece).upper() == "R":
+                self.pieceList[i] = Rook(pieceCropDict[self.bFrame.frame[files[f]][r]], self.pieceImg, (f,r), self.bFrame.frame[files[f]][r])
+            elif str(tmp_piece).upper() == "B":
+                self.pieceList[i] = Bishop(pieceCropDict[self.bFrame.frame[files[f]][r]], self.pieceImg, (f,r), self.bFrame.frame[files[f]][r])
+            elif str(tmp_piece).upper() == "N":
+                self.pieceList[i] = Knight(pieceCropDict[self.bFrame.frame[files[f]][r]], self.pieceImg, (f,r), self.bFrame.frame[files[f]][r])
+            elif str(tmp_piece).upper() == "P":
+                self.pieceList[i] = Pawn(pieceCropDict[self.bFrame.frame[files[f]][r]], self.pieceImg, (f,r), self.bFrame.frame[files[f]][r])
         for r in range(8):
             for f in range(8):
                 """Place piece into frame at correct location"""
@@ -308,7 +361,7 @@ class Piece:
     def draw(self):
         self.img = Board.canvas.create_image((self.imgLoc[0]*86+43,self.imgLoc[1]*86+43),image = self.tkImg)
     def move(self,_newPos:Pos):
-        print("Derek",_newPos)
+        #print("Derek",_newPos)
         xmov = _newPos[0] - self.imgLoc[0]
         ymov = _newPos[1] - self.imgLoc[1]
         print(xmov,ymov)
@@ -572,22 +625,18 @@ class SquareHighlight:
 
 #logVar = PGNLog()          
 
-"""
-Create Window, Canvas and ChessBoard
-"""
-app_win = tkinter.Tk()
-app_win.title(AppTitle)
-app_win.geometry(str(maxBoundary)+'x'+str(maxBoundary))
-Board = ChessBoard(app_win)
-Board.createCanvas()
-Board.createBoard()
-Board.getPieces(startPos)
+if __name__ == "__main__":
 
+    """
+    Create Window, Canvas and ChessBoard
+    """
+    app_win = tkinter.Tk()
+    app_win.title(AppTitle)
+    app_win.geometry(str(maxBoundary)+'x'+str(maxBoundary))
+    Board = ChessBoard(app_win)
+    Board.createCanvas()
+    Board.createBoard()
+    Board.getPieces(startPos)
+    Board.canvas.bind("<1>", Board.on_mouse_click)
 
-Board.canvas.bind("<1>", Board.on_mouse_click)
-
-
-
-
-
-app_win.mainloop()
+    app_win.mainloop()
